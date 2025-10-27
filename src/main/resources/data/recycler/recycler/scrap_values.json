@@ -1,0 +1,9 @@
+{
+  "defaults_by_tag": {
+    "recycler:recyclables/guns": { "min": 20, "max": 64 },
+    "recycler:recyclables/blocks": { "min": 20, "max": 35 },
+    "recycler:recyclables/armor": 20
+  },
+  "overrides_by_item": {
+  }
+}

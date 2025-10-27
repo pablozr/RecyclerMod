@@ -1,0 +1,8 @@
+{
+  "recycler_loop": {
+    "sounds": [
+      { "name": "recycler:recycler_sound", "stream": true }
+    ],
+    "attenuation_distance": 12
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "YYY",
+    "LLL",
+    "L L"
+  ],
+  "key": {
+    "Y": { "item": "minecraft:yellow_terracotta" },
+    "L": { "item": "minecraft:lime_terracotta" }
+  },
+  "result": {
+    "item": "recycler:recycler",
+    "count": 1
+  }
+}

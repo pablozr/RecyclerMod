@@ -65,19 +65,15 @@ public class RecyclerBlockEntity extends BlockEntity implements MenuProvider {
     static class IoOrderedHandler implements IItemHandler {
         private final ItemStackHandler inv;
         IoOrderedHandler(ItemStackHandler inv){ this.inv = inv; }
-
         @Override public int getSlots(){ return inv.getSlots(); }
         @Override public @NotNull ItemStack getStackInSlot(int slot){ return inv.getStackInSlot(slot); }
         @Override public int getSlotLimit(int slot){ return inv.getSlotLimit(slot); }
         @Override public boolean isItemValid(int slot, @NotNull ItemStack stack){ return slot >= IN0 && slot <= IN4; }
-
-        @Override
-        public @NotNull ItemStack insertItem(int slot, @NotNull ItemStack stack, boolean simulate) {
+        @Override public @NotNull ItemStack insertItem(int slot, @NotNull ItemStack stack, boolean simulate) {
             for (int s = IN0; s <= IN4 && !stack.isEmpty(); s++) stack = inv.insertItem(s, stack, simulate);
             return stack;
         }
-        @Override
-        public @NotNull ItemStack extractItem(int slot, int amount, boolean simulate) {
+        @Override public @NotNull ItemStack extractItem(int slot, int amount, boolean simulate) {
             for (int s = OUT0; s <= OUT4; s++) {
                 ItemStack taken = inv.extractItem(s, amount, simulate);
                 if (!taken.isEmpty()) return taken;
@@ -100,17 +96,12 @@ public class RecyclerBlockEntity extends BlockEntity implements MenuProvider {
     private boolean canProcessPair(ItemStack in, ItemStack out) {
         if (in.isEmpty()) return false;
         Range range = ScrapResolver.getScrapRange(in.copyWithCount(1));
-        int min = Math.max(0, range.min());
-        int max = Math.max(min, range.max());
-        int need = max;
-        if (need <= 0) return false;
-
-        if (out.isEmpty()) {
-            int cap = new ItemStack(ModItems.SCRAP.get()).getMaxStackSize();
-            return need <= cap;
-        }
-        if (!ItemStack.isSameItemSameTags(out, new ItemStack(ModItems.SCRAP.get()))) return false;
-        return out.getCount() + need <= out.getMaxStackSize();
+        int max = Math.max(0, Math.max(range.min(), range.max()));
+        if (max <= 0) return false;
+        ItemStack scrap = new ItemStack(ModItems.SCRAP.get());
+        if (out.isEmpty()) return true;
+        if (!ItemStack.isSameItemSameTags(out, scrap)) return false;
+        return out.getCount() < out.getMaxStackSize();
     }
 
     private static void stopLoopForNearby(ServerLevel sl, BlockPos pos) {
@@ -162,17 +153,28 @@ public class RecyclerBlockEntity extends BlockEntity implements MenuProvider {
                 Range range = ScrapResolver.getScrapRange(in.copyWithCount(1));
                 int give = Math.max(0, range.sample(be.rand));
 
+                ItemStack outNow = be.inventory.getStackInSlot(outIdx);
+                int maxStack = new ItemStack(ModItems.SCRAP.get()).getMaxStackSize();
+
                 if (give > 0) {
-                    in.shrink(1);
-                    ItemStack outNow = be.inventory.getStackInSlot(outIdx);
                     if (outNow.isEmpty()) {
-                        be.inventory.setStackInSlot(outIdx, new ItemStack(ModItems.SCRAP.get(), give));
-                    } else {
-                        ItemStack copy = outNow.copy();
-                        copy.grow(give);
-                        be.inventory.setStackInSlot(outIdx, copy);
+                        int toInsert = Math.min(give, maxStack);
+                        if (toInsert > 0) {
+                            in.shrink(1);
+                            be.inventory.setStackInSlot(outIdx, new ItemStack(ModItems.SCRAP.get(), toInsert));
+                        }
+                    } else if (ItemStack.isSameItemSameTags(outNow, new ItemStack(ModItems.SCRAP.get()))) {
+                        int space = Math.max(0, maxStack - outNow.getCount());
+                        int toInsert = Math.min(give, space);
+                        if (toInsert > 0) {
+                            in.shrink(1);
+                            ItemStack copy = outNow.copy();
+                            copy.grow(toInsert);
+                            be.inventory.setStackInSlot(outIdx, copy);
+                        }
                     }
                 }
+
                 be.progress[i] = 0;
                 be.setChanged();
             }

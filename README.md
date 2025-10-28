@@ -196,14 +196,6 @@ TACZ weapons can be recycled into Scrap. You can:
 
 ---
 
-## Roadmap
-
-- Additional economy integrations
-- Broader balance presets by category
-- Optional in-game metrics to help tune values
-
----
-
 ## License
 
 See `LICENSE.txt` in this repository.
